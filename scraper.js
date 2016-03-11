@@ -174,11 +174,20 @@ var fetchPageData = {
         }
     }
 };
+
+
+app.set('port', (process.env.PORT || 5000));
+app.get('/', function(request, response) {
+  response.render('/index.html');
+});
+app.listen(app.get('port'), function() {
+  console.log('Node app is running on port', app.get('port'));
+});
+
 request(sites.svpino.url, fetchPageData.svpino);
 request(sites.rmurphey.rss, fetchPageData.rmurphey);
 request(sites.madhatted.url, fetchPageData.madhatted);
 request(sites.alistapart.rss, fetchPageData.alistapart);
 request(sites.sixrevisions.url, fetchPageData.sixrevisions);
 
-app.listen(port);
-console.log('server listening on port ' + port);
+console.log('Scraper running');
