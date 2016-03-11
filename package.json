@@ -4,14 +4,25 @@
   "description": "",
   "main": "scraper.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node scraper.js"
   },
-  "author": "",
-  "license": "BSD",
-  "devDependencies": {
+  "dependencies": {
     "firebase": "~2.4.1",
     "express": "~4.13.4",
     "request": "~2.69.0",
     "cheerio": "~0.20.0"
-  }
+  },
+  "license": "BSD",
+  "engines": {
+    "node": "0.12.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/heroku/node-js-getting-started"
+  },
+  "keywords": [
+    "node",
+    "heroku",
+    "express"
+  ]
 }
