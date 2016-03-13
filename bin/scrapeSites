@@ -174,5 +174,5 @@ request(sites.madhatted.url, fetchPageData.madhatted);
 request(sites.alistapart.rss, fetchPageData.alistapart);
 request(sites.sixrevisions.url, fetchPageData.sixrevisions);
 
-ref.child("settings/").update({date: Firebase.ServerValue.TIMESTAMP});
+ref.child("settings/").update({lastupdate: Firebase.ServerValue.TIMESTAMP});
 
