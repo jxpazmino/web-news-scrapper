@@ -4,10 +4,7 @@ var express = require('express');
 var request = require('request');
 var cheerio = require('cheerio');
 var Firebase = require('firebase');
-// var path = require('path');
 var app = express();
-var port = 8080;
-var maxEntriesPerSite = 5;
 var FIREBASE_URL = 'https://scrap-dev-news.firebaseio.com/';
 var ref = new Firebase(FIREBASE_URL);
 
@@ -35,20 +32,6 @@ var sites = {
         tag: 'sr'
     }
 };
-
-/*one feed*/
-// var saveEntries = function (obj, site) {
-//     ref.child(
-//         "feed/"
-//         + obj.date.replace(/\//g,"-")
-//         + "@"
-//         + site
-//         + "&"
-//         + obj.title.slice(-4).replace(/\s/g, "-")
-//         + obj.title.length
-//         )
-//         .update(obj);
-// };
 
 /*split per site*/
 var saveEntries = function (obj, site) {
@@ -191,4 +174,4 @@ request(sites.madhatted.url, fetchPageData.madhatted);
 request(sites.alistapart.rss, fetchPageData.alistapart);
 request(sites.sixrevisions.url, fetchPageData.sixrevisions);
 
-console.log('Scraper running');
+ref.child("settings/").update({date: Firebase.ServerValue.TIMESTAMP});
