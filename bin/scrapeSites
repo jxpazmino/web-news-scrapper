@@ -3,8 +3,8 @@
 var express = require('express');
 var request = require('request');
 var cheerio = require('cheerio');
-var Firebase = require('firebase');
 var app = express();
+var Firebase = require('firebase');
 var FIREBASE_URL = 'https://scrap-dev-news.firebaseio.com/';
 var ref = new Firebase(FIREBASE_URL);
 
@@ -175,3 +175,4 @@ request(sites.alistapart.rss, fetchPageData.alistapart);
 request(sites.sixrevisions.url, fetchPageData.sixrevisions);
 
 ref.child("settings/").update({date: Firebase.ServerValue.TIMESTAMP});
+
