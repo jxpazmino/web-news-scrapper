@@ -126,7 +126,7 @@ var parseSubredditAndStoreInDB = function(error, resp, body, subreddit) {
                 site: subreddit.name,
                 url: articles[i].data.url.trim() || "",
                 title: articles[i].data.title.trim() || "(N/A)",
-                millis: articles[i].data.created * 1000 || null,
+                millis: articles[i].data.created_utc * 1000 || null,
                 commenturl: "https://www.reddit.com" + articles[i].data.permalink || "",
                 commentcount: articles[i].data.num_comments || 0
             };
@@ -368,5 +368,3 @@ request(sites.hackernews.url, fetchPageData.hackernews);
 request(sites.lobsters.url, fetchPageData.lobsters);
 
 ref.child("settings/").update({ lastupdate: Firebase.ServerValue.TIMESTAMP });
-
-console.log("Processing " + Object.keys(sites).length + " sites");
