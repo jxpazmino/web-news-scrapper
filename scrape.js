@@ -131,6 +131,7 @@ var parseSubredditAndStoreInDB = function(error, resp, body, subreddit) {
                 commentcount: articles[i].data.num_comments || 0
             };
             obj.date = millisToDate(obj.millis);
+            obj.millisInverse = -1 * obj.millis;
             saveEntriesToDB(obj, subreddit.tag);
         }
     }
@@ -152,6 +153,7 @@ var fetchPageData = {
                     title: objEntry.children[1].next.next.children[0].children[0].data.trim() || ""
                 }
                 obj.millis = dateToMillis(obj.date);
+                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.svpino.tag);
             }
         }
@@ -173,6 +175,7 @@ var fetchPageData = {
                 var start = obj.url.indexOf('/201');
                 obj.date = obj.url.substr(start + 1, 10) || "";
                 obj.millis = dateToMillis(obj.date) || null;
+                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.rmurphey.tag);
             }
         }
@@ -195,6 +198,7 @@ var fetchPageData = {
                 var end = title.indexOf(']');
                 obj.title = title.slice(start + 1, end).trim() || "";
                 obj.millis = dateToMillis(obj.date) || null;
+                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.alistapart.tag);
             }
         }
@@ -219,6 +223,7 @@ var fetchPageData = {
                             + (0 + obj.url.substring(monthSlashPosition + 1, daySlashPosition)).slice(-2) || "";
                 obj.millis = dateToMillis(obj.date) || null;
                 obj.url = sites.madhatted.url + obj.url || "";
+                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.madhatted.tag);
             }
         }
@@ -244,6 +249,7 @@ var fetchPageData = {
                     + "/" + ("0" + monthnumber).slice(-2)
                     + "/" + ("0" + articleRawDate.slice(4, articleRawDate.indexOf(','))).slice(-2) || "";
                 obj.millis = dateToMillis(obj.date) || null;
+                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.sixrevisions.tag);
             }
         }
@@ -268,7 +274,7 @@ var fetchPageData = {
                         };
                         var date = new Date(obj.millis);
                         obj.date = date.getFullYear() + "/" + ("0" + (date.getMonth() + 1)).slice(-2) + "/" + ("0" + date.getDate()).slice(-2);
-                        console.log(obj);
+                        obj.millisInverse = -1 * obj.millis;
                         saveEntriesToDB(obj, sites.hackernews.tag);
                     }
                 });
@@ -289,6 +295,7 @@ var fetchPageData = {
                     commentcount: articles[i].comment_count || 0
                 };
                 obj.millis = new Date(articles[0].created_at).getTime() || null;
+                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.lobsters.tag);
             }
         }
