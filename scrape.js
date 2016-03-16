@@ -1,5 +1,6 @@
+/*
 #!/usr/bin/env node
-
+*/
 var express = require('express');
 var request = require('request');
 var cheerio = require('cheerio');
@@ -80,10 +81,10 @@ var sites = {
 
 var saveEntriesToDB = function(obj, site) {
     ref.child(
-        "sites/"
-        + site
-        + "/articles/"
+        "articles/"
         + obj.date.replace(/\//g, "-")
+        + "@"
+        + site
         + "&"
         + obj.title.slice(-4).replace(/[.#$/\[\]\s]/g, "-") //firebase doesnt allow these characters in keys
         + obj.title.length
@@ -100,15 +101,10 @@ var dateToMillis = function(date) {
     return d.getTime();
 }
 
-var fullDateToMillis = function(fulldate) {
-    
-}
-
 var parseSubredditAndStoreInDB = function(error, resp, body, subredditTag) {
     if (!error && resp.statusCode == 200) {
         var rawObj = JSON.parse(body);
         var articles = rawObj.data.children;
-        console.log(articles[1])
         for (var i = 0; i < articles.length; i++) {
             var obj = {
                 href: articles[i].data.url.trim(),
@@ -251,16 +247,6 @@ var fetchPageData = {
                     }
                 });
             }
-            
-            // for(var i = 0 ; i < sites.hackernews.max ; i++) {
-            //     var url = 'https://hacker-news.firebaseio.com/v0/item/' + articles[i] + '.json';
-            //     request(url, function(err, res, bod) {
-            //         if (!error && resp.statusCode == 200) {
-            //             bod = JSON.parse(bod);
-            //             console.log(bod.title);
-            //         }
-            //     });
-            // }
         }
     },
 
