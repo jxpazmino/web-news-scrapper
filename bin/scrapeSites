@@ -4,10 +4,10 @@ var express = require('express');
 var request = require('request');
 var cheerio = require('cheerio');
 var app = express();
-var maxNumberArticles = 20;
+var maxNumberArticles = 25;
 var Firebase = require('firebase');
 var FIREBASE_URL = 'https://scrap-dev-news.firebaseio.com/';
-var ref = new Firebase(FIREBASE_URL);
+var rootRef = new Firebase(FIREBASE_URL);
 var sites = {
     svpino: {
         name: 'Shifted Up',
@@ -39,44 +39,20 @@ var sites = {
 };
 
 var saveEntriesToDB = function(obj, tag) {
-    ref.child(
-        "articles/"
-        + obj.date.replace(/\//g, "-")
-        + "@"
+    rootRef.child(
+        "sites/"
         + tag
+        + "/"
+        + obj.date.replace(/\//g, "-")
         + "&"
         + obj.title.slice(-4).replace(/[.#$/\[\]\s]+/g, "-") //firebase doesnt allow these characters in keys
         + obj.title.length
     ).update(obj);
 };
 
-var millisToDate = function(millis) {
-    var d = new Date(millis);
-    return d.getFullYear() + "/" + ("0" + (d.getMonth() + 1)).slice(-2) + "/" + ("0" + d.getDate()).slice(-2);
-}
-
 var dateToMillis = function(date) {
     var d = new Date(date);
     return d.getTime();
-}
-
-var parseSubredditAndStoreInDB = function(error, resp, body, subreddit) {
-    if (!error && resp.statusCode == 200) {
-        var rawObj = JSON.parse(body);
-        var articles = rawObj.data.children;
-        for (var i = 0; i < articles.length; i++) {
-            var obj = {
-                tag: subreddit.tag,
-                url: articles[i].data.url.trim() || "",
-                title: articles[i].data.title.trim() || "(N/A)",
-                millis: articles[i].data.created_utc * 1000 || null,
-                commenturl: "https://www.reddit.com" + articles[i].data.permalink || "",
-                commentcount: articles[i].data.num_comments || 0
-            };
-            obj.date = millisToDate(obj.millis);
-            saveEntriesToDB(obj, subreddit.tag);
-        }
-    }
 }
 
 var fetchPageData = {
@@ -207,5 +183,4 @@ request(sites.rmurphey.rss, fetchPageData.rmurphey);
 request(sites.alistapart.rss, fetchPageData.alistapart);
 request(sites.sixrevisions.url, fetchPageData.sixrevisions);
 
-ref.child("settings/").update({ lastupdate: Firebase.ServerValue.TIMESTAMP });
-
+rootRef.child("settings/").update({ lastupdate: Firebase.ServerValue.TIMESTAMP });

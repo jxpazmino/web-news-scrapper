@@ -5,10 +5,10 @@ var express = require('express');
 var request = require('request');
 var cheerio = require('cheerio');
 var app = express();
-var maxNumberArticles = 20;
+var maxNumberArticles = 25;
 var Firebase = require('firebase');
 var FIREBASE_URL = 'https://scrap-dev-news.firebaseio.com/';
-var ref = new Firebase(FIREBASE_URL);
+var rootRef = new Firebase(FIREBASE_URL);
 var sites = {
     svpino: {
         name: 'Shifted Up',
@@ -53,21 +53,6 @@ var sites = {
         url: 'https://www.reddit.com/r/cscareerquestions.json?limit=' + maxNumberArticles,
         tag: 'rcq'
     },
-    r_cseducation: {
-        name: 'r/cseducation',
-        url: 'https://www.reddit.com/r/cseducation.json?limit=' + maxNumberArticles,
-        tag: 'rce'
-    },
-    r_csinterviewproblems: {
-        name: 'r/csinterviewproblems',
-        url: 'https://www.reddit.com/r/csinterviewproblems.json?limit=' + maxNumberArticles,
-        tag: 'rci'
-    },
-    r_firebase: {
-        name: 'r/firebase',
-        url: 'https://www.reddit.com/r/firebase.json?limit=' + maxNumberArticles,
-        tag: 'rfi'
-    },
     r_frontend: {
         name: 'r/frontend',
         url: 'https://www.reddit.com/r/frontend.json?limit=' + maxNumberArticles,
@@ -83,11 +68,6 @@ var sites = {
         url: 'https://www.reddit.com/r/learnprogramming.json?limit=' + maxNumberArticles,
         tag: 'rle'
     },
-    r_programming: {
-        name: 'r/programming',
-        url: 'https://www.reddit.com/r/programming.json?limit=' + maxNumberArticles,
-        tag: 'rpr'
-    },
     r_webdev: {
         name: 'r/webdev',
         url: 'https://www.reddit.com/r/webdev.json?limit=' + maxNumberArticles,
@@ -96,11 +76,11 @@ var sites = {
 };
 
 var saveEntriesToDB = function(obj, tag) {
-    ref.child(
-        "articles/"
-        + obj.date.replace(/\//g, "-")
-        + "@"
+    rootRef.child(
+        "sites/"
         + tag
+        + "/"
+        + obj.date.replace(/\//g, "-")
         + "&"
         + obj.title.slice(-4).replace(/[.#$/\[\]\s]+/g, "-") //firebase doesnt allow these characters in keys
         + obj.title.length
@@ -121,18 +101,23 @@ var parseSubredditAndStoreInDB = function(error, resp, body, subreddit) {
     if (!error && resp.statusCode == 200) {
         var rawObj = JSON.parse(body);
         var articles = rawObj.data.children;
-        for (var i = 0; i < articles.length; i++) {
-            var obj = {
-                tag: subreddit.tag,
-                url: articles[i].data.url.trim() || "",
-                title: articles[i].data.title.trim() || "(N/A)",
-                millis: articles[i].data.created_utc * 1000 || null,
-                commenturl: "https://www.reddit.com" + articles[i].data.permalink || "",
-                commentcount: articles[i].data.num_comments || 0
-            };
-            obj.date = millisToDate(obj.millis);
-            saveEntriesToDB(obj, subreddit.tag);
-        }
+        
+        rootRef.child("sites/" + subreddit.tag + "/").remove(function(err) {
+            if (!err) {
+                for (var i = 0; i < articles.length; i++) {
+                    var obj = {
+                        tag: subreddit.tag,
+                        url: articles[i].data.url.trim() || "",
+                        title: articles[i].data.title.trim() || "(N/A)",
+                        millis: articles[i].data.created_utc * 1000 || null,
+                        commenturl: "https://www.reddit.com" + articles[i].data.permalink || "",
+                        commentcount: articles[i].data.num_comments || 0
+                    };
+                    obj.date = millisToDate(obj.millis);
+                    saveEntriesToDB(obj, subreddit.tag);
+                }
+            }
+        });
     }
 }
 
@@ -253,60 +238,57 @@ var fetchPageData = {
         if (!error && resp.statusCode == 200) {
             var articles = JSON.parse(body);
             
-            for(var i = 0 ; i < sites.hackernews.max ; i++) {
-                var url = 'https://hacker-news.firebaseio.com/v0/item/' + articles[i] + '.json';
-                request(url, function(err, res, bod) {
-                    if (!error && resp.statusCode == 200) {
-                        bod = JSON.parse(bod);
-                        var obj = {
-                            tag: sites.hackernews.tag,
-                            url: bod.url || "",
-                            title: bod.title || "(N/A)",
-                            millis: bod.time * 1000 || null,
-                            commenturl: 'https://news.ycombinator.com/item?id=' + bod.id || "",
-                            commentcount: bod.descendants || 0
-                        };
-                        var date = new Date(obj.millis);
-                        obj.date = date.getFullYear() + "/" + ("0" + (date.getMonth() + 1)).slice(-2) + "/" + ("0" + date.getDate()).slice(-2);
-                        saveEntriesToDB(obj, sites.hackernews.tag);
-                    }
-                });
-            }
-        }
+            rootRef.child("sites/" + sites.hackernews.tag + "/").remove(function(err) {
+                if (!err) {
+                    for(var i = 0 ; i < sites.hackernews.max ; i++) {
+                        var url = 'https://hacker-news.firebaseio.com/v0/item/' + articles[i] + '.json';
+                        request(url, function(err, res, bod) {
+                            if (!error && resp.statusCode == 200) {
+                                bod = JSON.parse(bod);
+                                var obj = {
+                                    tag: sites.hackernews.tag,
+                                    url: bod.url || "",
+                                    title: bod.title || "(N/A)",
+                                    millis: bod.time * 1000 || null,
+                                    commenturl: 'https://news.ycombinator.com/item?id=' + bod.id || "",
+                                    commentcount: bod.descendants || 0
+                                };
+                                var date = new Date(obj.millis);
+                                obj.date = date.getFullYear() + "/" + ("0" + (date.getMonth() + 1)).slice(-2) + "/" + ("0" + date.getDate()).slice(-2);
+                                saveEntriesToDB(obj, sites.hackernews.tag);
+                            }
+                        });
+                    } //for
+                } //if !err
+            }); //rootRef
+        } //if error
     },
 
     lobsters: function(error, resp, body) {
         if (!error && resp.statusCode == 200) {
             var articles = JSON.parse(body);
-            for (var i = 0; i < maxNumberArticles; i++) {
-                var obj = {
-                    tag: sites.lobsters.tag,
-                    url: articles[i].url.trim() || "",
-                    title: articles[i].title.trim() || "",
-                    date: articles[i].created_at.slice(0,10).replace(/-/g, "/") || "",
-                    commenturl: articles[i].comments_url || "",
-                    commentcount: articles[i].comment_count || 0
-                };
-                obj.millis = new Date(articles[0].created_at).getTime() || null;
-                saveEntriesToDB(obj, sites.lobsters.tag);
-            }
+            
+            rootRef.child("sites/" + sites.lobsters.tag + "/").remove(function(err) {
+                if (!err) {
+                    for (var i = 0; i < maxNumberArticles; i++) {
+                        var obj = {
+                            tag: sites.lobsters.tag,
+                            url: articles[i].url.trim() || "",
+                            title: articles[i].title.trim() || "",
+                            date: articles[i].created_at.slice(0,10).replace(/-/g, "/") || "",
+                            commenturl: articles[i].comments_url || "",
+                            commentcount: articles[i].comment_count || 0
+                        };
+                        obj.millis = new Date(articles[0].created_at).getTime() || null;
+                        saveEntriesToDB(obj, sites.lobsters.tag);
+                    } //for
+                } //if !err
+            }); //rootRef
         }
     },
 
     r_cscareerquestions: function(error, resp, body) {
         parseSubredditAndStoreInDB(error, resp, body, sites.r_cscareerquestions);
-    },
-
-    r_cseducation: function(error, resp, body) {
-        parseSubredditAndStoreInDB(error, resp, body, sites.r_cseducation);
-    },
-
-    r_csinterviewproblems: function(error, resp, body) {
-        parseSubredditAndStoreInDB(error, resp, body, sites.r_csinterviewproblems);
-    },
-
-    r_firebase: function(error, resp, body) {
-        parseSubredditAndStoreInDB(error, resp, body, sites.r_firebase);
     },
 
     r_frontend: function(error, resp, body) {
@@ -319,10 +301,6 @@ var fetchPageData = {
 
     r_learnprogramming: function(error, resp, body) {
         parseSubredditAndStoreInDB(error, resp, body, sites.r_learnprogramming);
-    },
-
-    r_programming: function(error, resp, body) {
-        parseSubredditAndStoreInDB(error, resp, body, sites.r_programming);
     },
 
     r_webdev: function(error, resp, body) {
@@ -345,18 +323,14 @@ request(sites.alistapart.rss, fetchPageData.alistapart);
 request(sites.sixrevisions.url, fetchPageData.sixrevisions);
 
 //reddit
-request(sites.r_csinterviewproblems.url, fetchPageData.r_csinterviewproblems);
-request(sites.r_cseducation.url, fetchPageData.r_cseducation);
 request(sites.r_cscareerquestions.url, fetchPageData.r_cscareerquestions);
-request(sites.r_firebase.url, fetchPageData.r_firebase);
 request(sites.r_frontend.url, fetchPageData.r_frontend);
 request(sites.r_javascript.url, fetchPageData.r_javascript);
 request(sites.r_learnprogramming.url, fetchPageData.r_learnprogramming);
-request(sites.r_programming.url, fetchPageData.r_programming);
 request(sites.r_webdev.url, fetchPageData.r_webdev);
 
 //other
 request(sites.hackernews.url, fetchPageData.hackernews);
 request(sites.lobsters.url, fetchPageData.lobsters);
 
-ref.child("settings/").update({ lastupdate: Firebase.ServerValue.TIMESTAMP });
+rootRef.child("settings/").update({ lastupdate: Firebase.ServerValue.TIMESTAMP });
