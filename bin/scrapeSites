@@ -12,94 +12,94 @@ var sites = {
     svpino: {
         name: 'Shifted Up',
         url: 'https://www.shiftedup.com/',
-        tag: 'sv'
+        tag: 'svp'
     },
     rmurphey: {
         name: 'Rebecca Murphey',
         url: 'http://rmurphey.com/',
         rss: 'http://rmurphey.com/feed.xml',
-        tag: 'mu'
+        tag: 'mur'
     },
     madhatted: {
         name: 'Mad Hatted',
         url: 'http://madhatted.com/',
-        tag: 'mh'
+        tag: 'mad'
     },
     alistapart: {
         name: 'A List Apart',
         url: 'http://alistapart.com/articles/',
         rss: 'http://alistapart.com/main/feed',
-        tag: 'al'
+        tag: 'ala'
     },
     sixrevisions: {
         name: 'Six Revisions',
         url: 'http://sixrevisions.com/',
-        tag: 'si'
+        tag: 'six'
     },
     lobsters: {
         name: 'Lobsters',
         url: 'https://lobste.rs/hottest.json',
-        tag: 'lo'
+        tag: 'lob'
     },
     hackernews: {
         name: 'Hacker News',
         url: 'https://hacker-news.firebaseio.com/v0/topstories.json',
-        tag: 'hn',
+        tag: 'hac',
         max: maxNumberArticles
     },
     r_cscareerquestions: {
         name: 'r/cscareerquestions',
         url: 'https://www.reddit.com/r/cscareerquestions.json?limit=' + maxNumberArticles,
-        tag: 'rc'
+        tag: 'rcq'
     },
     r_cseducation: {
         name: 'r/cseducation',
         url: 'https://www.reddit.com/r/cseducation.json?limit=' + maxNumberArticles,
-        tag: 're'
+        tag: 'rce'
     },
     r_csinterviewproblems: {
         name: 'r/csinterviewproblems',
         url: 'https://www.reddit.com/r/csinterviewproblems.json?limit=' + maxNumberArticles,
-        tag: 'ri'
+        tag: 'rci'
     },
     r_firebase: {
         name: 'r/firebase',
         url: 'https://www.reddit.com/r/firebase.json?limit=' + maxNumberArticles,
-        tag: 'rf'
+        tag: 'rfi'
     },
     r_frontend: {
         name: 'r/frontend',
         url: 'https://www.reddit.com/r/frontend.json?limit=' + maxNumberArticles,
-        tag: 'rd'
+        tag: 'rfe'
     },
     r_javascript: {
         name: 'r/javascript',
         url: 'https://www.reddit.com/r/javascript.json?limit=' + maxNumberArticles,
-        tag: 'rj'
+        tag: 'rjs'
     },
     r_learnprogramming: {
         name: 'r/learnprogramming',
         url: 'https://www.reddit.com/r/learnprogramming.json?limit=' + maxNumberArticles,
-        tag: 'rl'
+        tag: 'rle'
     },
     r_programming: {
         name: 'r/programming',
         url: 'https://www.reddit.com/r/programming.json?limit=' + maxNumberArticles,
-        tag: 'rp'
+        tag: 'rpr'
     },
     r_webdev: {
         name: 'r/webdev',
         url: 'https://www.reddit.com/r/webdev.json?limit=' + maxNumberArticles,
-        tag: 'rw'
+        tag: 'rwd'
     }
 };
 
-var saveEntriesToDB = function(obj, site) {
+var saveEntriesToDB = function(obj, tag) {
     ref.child(
         "articles/"
         + obj.date.replace(/\//g, "-")
         + "@"
-        + site
+        + tag
         + "&"
         + obj.title.slice(-4).replace(/[.#$/\[\]\s]+/g, "-") //firebase doesnt allow these characters in keys
         + obj.title.length
@@ -122,7 +122,7 @@ var parseSubredditAndStoreInDB = function(error, resp, body, subreddit) {
         var articles = rawObj.data.children;
         for (var i = 0; i < articles.length; i++) {
             var obj = {
-                site: subreddit.name,
+                tag: subreddit.tag,
                 url: articles[i].data.url.trim() || "",
                 title: articles[i].data.title.trim() || "(N/A)",
                 millis: articles[i].data.created_utc * 1000 || null,
@@ -130,7 +130,6 @@ var parseSubredditAndStoreInDB = function(error, resp, body, subreddit) {
                 commentcount: articles[i].data.num_comments || 0
             };
             obj.date = millisToDate(obj.millis);
-            obj.millisInverse = -1 * obj.millis;
             saveEntriesToDB(obj, subreddit.tag);
         }
     }
@@ -146,13 +145,12 @@ var fetchPageData = {
             for (var i = 0; i < articlesNode.length; i++) {
                 var objEntry = articlesNode[i].children[0].next;
                 var obj = {
-                    site: sites.svpino.name,
+                    tag: sites.svpino.tag,
                     url: sites.svpino.url + objEntry.children[1].next.next.children[0].attribs.href.trim() || "",
                     date: objEntry.children[0].next.attribs.datetime.trim().replace(/-/g, "/") || "",
                     title: objEntry.children[1].next.next.children[0].children[0].data.trim() || ""
                 }
                 obj.millis = dateToMillis(obj.date);
-                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.svpino.tag);
             }
         }
@@ -167,14 +165,13 @@ var fetchPageData = {
             for (var i = 0; i < item.length; i++) {
                 var objEntry = item.eq(i);
                 var obj = {
-                    site: sites.rmurphey.name,
+                    tag: sites.rmurphey.tag,
                     title: objEntry.find('title').text().trim() || "(N/A)",
                     url: objEntry.find('link')[0].next.data.trim() || ""
                 };
                 var start = obj.url.indexOf('/201');
                 obj.date = obj.url.substr(start + 1, 10) || "";
                 obj.millis = dateToMillis(obj.date) || null;
-                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.rmurphey.tag);
             }
         }
@@ -187,7 +184,7 @@ var fetchPageData = {
 
             for (var i = 0; i < item.length; i++) {
                 var obj = {
-                    site: sites.alistapart.name,
+                    tag: sites.alistapart.tag,
                     date: item.eq(i).children().last().text().trim().slice(0, 10).replace(/-/g, "/") || "",
                     url: item.eq(i).find('guid').text().trim() || ""
                 };
@@ -197,7 +194,6 @@ var fetchPageData = {
                 var end = title.indexOf(']');
                 obj.title = title.slice(start + 1, end).trim() || "";
                 obj.millis = dateToMillis(obj.date) || null;
-                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.alistapart.tag);
             }
         }
@@ -211,7 +207,7 @@ var fetchPageData = {
             for (var i = 0; i < content.length; i++) {
                 var objEntry = content.get(i).children[0];
                 var obj = {
-                    site: sites.madhatted.name,
+                    tag: sites.madhatted.tag,
                     url: objEntry.attribs.href.trim() || "",
                     title: objEntry.children[0].data.trim() || "(N/A)"
                 };
@@ -222,7 +218,6 @@ var fetchPageData = {
                             + (0 + obj.url.substring(monthSlashPosition + 1, daySlashPosition)).slice(-2) || "";
                 obj.millis = dateToMillis(obj.date) || null;
                 obj.url = sites.madhatted.url + obj.url || "";
-                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.madhatted.tag);
             }
         }
@@ -236,7 +231,7 @@ var fetchPageData = {
             for (var i = 0; i < h1.length; i++) {
                 var objEntry = h1.eq(i);
                 var obj = {
-                    site: sites.sixrevisions.name,
+                    tag: sites.sixrevisions.tag,
                     url: objEntry.find('a').attr('href') || "",
                     title: objEntry.find('a').text().trim() || "(N/A)"
                 };
@@ -248,7 +243,6 @@ var fetchPageData = {
                     + "/" + ("0" + monthnumber).slice(-2)
                     + "/" + ("0" + articleRawDate.slice(4, articleRawDate.indexOf(','))).slice(-2) || "";
                 obj.millis = dateToMillis(obj.date) || null;
-                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.sixrevisions.tag);
             }
         }
@@ -264,16 +258,15 @@ var fetchPageData = {
                     if (!error && resp.statusCode == 200) {
                         bod = JSON.parse(bod);
                         var obj = {
-                            site: sites.hackernews.name,
-                            url: bod.url.trim() || "",
-                            title: bod.title.trim() || "(N/A)",
+                            tag: sites.hackernews.tag,
+                            url: bod.url || "",
+                            title: bod.title || "(N/A)",
                             millis: bod.time * 1000 || null,
                             commenturl: 'https://news.ycombinator.com/item?id=' + bod.id || "",
                             commentcount: bod.descendants || 0
                         };
                         var date = new Date(obj.millis);
                         obj.date = date.getFullYear() + "/" + ("0" + (date.getMonth() + 1)).slice(-2) + "/" + ("0" + date.getDate()).slice(-2);
-                        obj.millisInverse = -1 * obj.millis;
                         saveEntriesToDB(obj, sites.hackernews.tag);
                     }
                 });
@@ -286,7 +279,7 @@ var fetchPageData = {
             var articles = JSON.parse(body);
             for (var i = 0; i < maxNumberArticles; i++) {
                 var obj = {
-                    site: sites.lobsters.name,
+                    tag: sites.lobsters.tag,
                     url: articles[i].url.trim() || "",
                     title: articles[i].title.trim() || "",
                     date: articles[i].created_at.slice(0,10).replace(/-/g, "/") || "",
@@ -294,7 +287,6 @@ var fetchPageData = {
                     commentcount: articles[i].comment_count || 0
                 };
                 obj.millis = new Date(articles[0].created_at).getTime() || null;
-                obj.millisInverse = -1 * obj.millis;
                 saveEntriesToDB(obj, sites.lobsters.tag);
             }
         }
@@ -367,3 +359,4 @@ request(sites.hackernews.url, fetchPageData.hackernews);
 request(sites.lobsters.url, fetchPageData.lobsters);
 
 ref.child("settings/").update({ lastupdate: Firebase.ServerValue.TIMESTAMP });
+
