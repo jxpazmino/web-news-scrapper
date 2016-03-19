@@ -174,11 +174,15 @@ var fetchPageData = {
                     date: item.eq(i).children().last().text().trim().slice(0, 10).replace(/-/g, "/") || "",
                     url: item.eq(i).find('guid').text().trim() || ""
                 };
-                //remove CDATA stuff from title
+                //remove CDATA stuff from title if exists
                 var title = item.eq(i).find('title').html();
-                var start = title.lastIndexOf('[');
-                var end = title.indexOf(']');
-                obj.title = title.slice(start + 1, end).trim() || "";
+                var start = title.indexOf('CDATA[');
+                var end = title.indexOf(']]');
+				if(start===-1 || end===-1) {
+					obj.title = title.trim();
+				} else {
+					obj.title = title.slice(start + 6, end).trim() || "(N/A)";
+				}
                 obj.millis = dateToMillis(obj.date) || null;
                 saveEntriesToDB(obj, sites.alistapart.tag);
             }
@@ -314,12 +318,12 @@ app.set('port', (process.env.PORT || 5000));
 app.listen(app.get('port'), function() {
     console.log('Node app is running on port', app.get('port'));
 });
-
+request(sites.alistapart.rss, fetchPageData.alistapart);
 //blogs
-request(sites.svpino.url, fetchPageData.svpino);
+/*request(sites.svpino.url, fetchPageData.svpino);
 request(sites.madhatted.url, fetchPageData.madhatted);
 request(sites.rmurphey.rss, fetchPageData.rmurphey);
-request(sites.alistapart.rss, fetchPageData.alistapart);
+
 request(sites.sixrevisions.url, fetchPageData.sixrevisions);
 
 //reddit
@@ -331,6 +335,6 @@ request(sites.r_webdev.url, fetchPageData.r_webdev);
 
 //other
 request(sites.hackernews.url, fetchPageData.hackernews);
-request(sites.lobsters.url, fetchPageData.lobsters);
+request(sites.lobsters.url, fetchPageData.lobsters);*/
 
 rootRef.child("settings/").update({ lastupdate: Firebase.ServerValue.TIMESTAMP });

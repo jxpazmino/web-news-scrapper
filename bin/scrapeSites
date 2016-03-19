@@ -108,11 +108,15 @@ var fetchPageData = {
                     date: item.eq(i).children().last().text().trim().slice(0, 10).replace(/-/g, "/") || "",
                     url: item.eq(i).find('guid').text().trim() || ""
                 };
-                //remove CDATA stuff from title
+                //remove CDATA stuff from title if exists
                 var title = item.eq(i).find('title').html();
-                var start = title.lastIndexOf('[');
-                var end = title.indexOf(']');
-                obj.title = title.slice(start + 1, end).trim() || "";
+                var start = title.indexOf('CDATA[');
+                var end = title.indexOf(']]');
+				if(start===-1 || end===-1) {
+					obj.title = title.trim();
+				} else {
+					obj.title = title.slice(start + 6, end).trim() || "(N/A)";
+				}
                 obj.millis = dateToMillis(obj.date) || null;
                 saveEntriesToDB(obj, sites.alistapart.tag);
             }
