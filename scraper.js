@@ -318,12 +318,12 @@ app.set('port', (process.env.PORT || 5000));
 app.listen(app.get('port'), function() {
     console.log('Node app is running on port', app.get('port'));
 });
-request(sites.alistapart.rss, fetchPageData.alistapart);
+
 //blogs
-/*request(sites.svpino.url, fetchPageData.svpino);
+request(sites.svpino.url, fetchPageData.svpino);
 request(sites.madhatted.url, fetchPageData.madhatted);
 request(sites.rmurphey.rss, fetchPageData.rmurphey);
-
+request(sites.alistapart.rss, fetchPageData.alistapart);
 request(sites.sixrevisions.url, fetchPageData.sixrevisions);
 
 //reddit
@@ -335,6 +335,6 @@ request(sites.r_webdev.url, fetchPageData.r_webdev);
 
 //other
 request(sites.hackernews.url, fetchPageData.hackernews);
-request(sites.lobsters.url, fetchPageData.lobsters);*/
+request(sites.lobsters.url, fetchPageData.lobsters);
 
 rootRef.child("settings/").update({ lastupdate: Firebase.ServerValue.TIMESTAMP });
