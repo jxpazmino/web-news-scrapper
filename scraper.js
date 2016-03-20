@@ -280,10 +280,10 @@ var fetchPageData = {
                             url: articles[i].url.trim() || "",
                             title: articles[i].title.trim() || "",
                             date: articles[i].created_at.slice(0,10).replace(/-/g, "/") || "",
+							millis: new Date(articles[i].created_at).getTime(),
                             commenturl: articles[i].comments_url || "",
                             commentcount: articles[i].comment_count || 0
                         };
-                        obj.millis = new Date(articles[0].created_at).getTime() || null;
                         saveEntriesToDB(obj, sites.lobsters.tag);
                     } //for
                 } //if !err
