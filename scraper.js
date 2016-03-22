@@ -284,6 +284,7 @@ var fetchPageData = {
                             commenturl: articles[i].comments_url || "",
                             commentcount: articles[i].comment_count || 0
                         };
+                        if (obj.url.length===0) obj.url = obj.commenturl;
                         saveEntriesToDB(obj, sites.lobsters.tag);
                     } //for
                 } //if !err
