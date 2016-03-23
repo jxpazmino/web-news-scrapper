@@ -13,7 +13,7 @@ app.use(express.static(__dirname + '/public'));
 //   response.render('pages/index');
 // });
 app.get('/', function(request, response) {
-  response.render('/');
+  response.render('pages/index');
 });
 
 
